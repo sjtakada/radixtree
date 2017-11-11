@@ -92,6 +92,7 @@ public:
                     shared_ptr<Node<P, D> > child) {
     u_char bit = (u_char)child->prefix().bit_at(parent->prefix().len());
     parent->setChild(bit, child);
+    child->setParent(parent);
   }
 
   // Return a node if it exists, otherwise create one.
