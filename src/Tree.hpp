@@ -11,12 +11,15 @@ namespace librt {
 // Radix Tree template
 //
 template<typename P, typename D>
-class Tree
+class Tree : public std::enable_shared_from_this<Tree<P, D>>
 {
 public:
   Tree()
     : top_(), count_() { }
   ~Tree() { }
+
+  //  typedef Tree* Ptr;
+  using Ptr = shared_ptr<Tree>;
 
   //
   // Tree Node
@@ -27,10 +30,10 @@ public:
     using Ptr = shared_ptr<Node>;
 
     // Constructors.
-    Node(Tree *tree, const P& prefix)
+    Node(Tree::Ptr tree, const P& prefix)
       : tree_(tree), parent_(nullptr), prefix_(prefix) {
     }
-    Node(Tree *tree, const P& prefix1, const P& prefix2)
+    Node(Tree::Ptr tree, const P& prefix1, const P& prefix2)
       : tree_(tree), parent_(nullptr), prefix_(prefix1, prefix2) {
     }
 
@@ -75,7 +78,7 @@ public:
 
   private:
     // Pointer to the tree.
-    Tree *tree_;
+    Tree::Ptr tree_;
 
     // Pointer to parent node.
     Ptr parent_;
@@ -90,12 +93,16 @@ public:
     shared_ptr<D> data_;
   };
 
-  //
   using NodePtr = shared_ptr<Node>;
 
   // Tree member functions.
+  NodePtr top() {
+    return top_;
+  }
+
   NodePtr setNode(const P& prefix) {
-    return make_shared<Node>(this, prefix);
+    return make_shared<Node>(enable_shared_from_this<Tree>::shared_from_this(),
+                             prefix);
   }
 
   void setChildNode(NodePtr parent, NodePtr child) {
@@ -131,7 +138,8 @@ public:
       }
     }
     else {
-      new_node = make_shared<Node>(this, curr->prefix(), prefix);
+      new_node = make_shared<Node>(enable_shared_from_this<Tree>::shared_from_this(),
+                                   curr->prefix(), prefix);
       setChildNode(new_node, curr);
 
       if (matched) {
@@ -145,16 +153,12 @@ public:
         matched = new_node;
         new_node = setNode(prefix);
         setChildNode(matched, new_node);
-        // count??
       }
     }
-    // count??
     // lock ??
 
     return new_node;
   }
-
-  shared_ptr<Node> top() { return top_; }
 
 private:
   // top node of this tree.
