@@ -51,11 +51,6 @@ public:
     }
 
     //
-    void setParent(Ptr parent) {
-      parent_ = parent;
-    }
-
-    //
     const Ptr nextNode() {
       shared_ptr<Node> curr =
         enable_shared_from_this<Node>::shared_from_this();
@@ -106,7 +101,6 @@ public:
   void setChildNode(NodePtr parent, NodePtr child) {
     u_char bit = (u_char)child->prefix().bit_at(parent->prefix().len());
     parent->setChild(bit, child);
-    child->setParent(parent);
   }
 
   // Return a node if it exists, otherwise create one.
