@@ -24,8 +24,9 @@ public:
   class Node : public std::enable_shared_from_this<Node>
   {
   public:
-    using NodePtr = shared_ptr<Node>;
+    using Ptr = shared_ptr<Node>;
 
+    // Constructors.
     Node(Tree *tree, const P& prefix)
       : tree_(tree), parent_(nullptr), prefix_(prefix) {
     }
@@ -33,23 +34,29 @@ public:
       : tree_(tree), parent_(nullptr), prefix_(prefix1, prefix2) {
     }
 
-    const P& prefix() { return prefix_; }
+    // 
+    const P& prefix() {
+      return prefix_;
+    }
 
-    //  const shared_ptr<Node<P, D> > child(u_char bit) {
-    const NodePtr child(u_char bit) {
+    // 
+    const Ptr child(u_char bit) {
       return children_[bit];
     }
 
-    void setChild(u_char bit, NodePtr node) {
+    //
+    void setChild(u_char bit, Ptr node) {
       children_[bit] = node;
       node->parent_ = enable_shared_from_this<Node>::shared_from_this();
     }
 
-    void setParent(NodePtr parent) {
+    //
+    void setParent(Ptr parent) {
       parent_ = parent;
     }
 
-    const NodePtr nextNode() {
+    //
+    const Ptr nextNode() {
       shared_ptr<Node> curr =
         enable_shared_from_this<Node>::shared_from_this();
 
@@ -76,34 +83,37 @@ public:
     Tree *tree_;
 
     // Pointer to parent node.
-    NodePtr parent_;
+    Ptr parent_;
 
     // Prefix of this node.
     P prefix_;
 
     // Children nodes.
-    NodePtr children_[2];
+    Ptr children_[2];
 
     // Data.
     shared_ptr<D> data_;
   };
 
-  shared_ptr<Node> setNode(const P& prefix) {
+  //
+  using NodePtr = shared_ptr<Node>;
+
+  // Tree member functions.
+  NodePtr setNode(const P& prefix) {
     return make_shared<Node>(this, prefix);
   }
 
-  void setChildNode(shared_ptr<Node> parent,
-                    shared_ptr<Node> child) {
+  void setChildNode(NodePtr parent, NodePtr child) {
     u_char bit = (u_char)child->prefix().bit_at(parent->prefix().len());
     parent->setChild(bit, child);
     child->setParent(parent);
   }
 
   // Return a node if it exists, otherwise create one.
-  shared_ptr<Node> getNode(const P& prefix) {
-    shared_ptr<Node> new_node;
-    shared_ptr<Node> curr = top_;
-    shared_ptr<Node> matched = nullptr;
+  NodePtr getNode(const P& prefix) {
+    NodePtr new_node;
+    NodePtr curr = top_;
+    NodePtr matched = nullptr;
 
     while (curr
            && curr->prefix().len() <= prefix.len()
@@ -154,7 +164,7 @@ public:
 
 private:
   // top node of this tree.
-  shared_ptr<Node> top_;
+  NodePtr top_;
 
   // number of nodes in this tree.
   uint32_t count_;
