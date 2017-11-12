@@ -94,8 +94,7 @@ public:
 
   using NodePtr = shared_ptr<Node>;
 
-  typedef int size_type;
-
+  // Node iterator
   class iterator {
   public:
     typedef iterator self_type;
