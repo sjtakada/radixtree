@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <string>
 #include <ostream>
+#include <iomanip>
 #include <stdexcept>
 
 namespace librt {
@@ -180,7 +181,7 @@ operator<<(ostream& stream, const Prefix<IPv4>& p)
   char buf[INET_ADDRSTRLEN];
 
   inet_ntop(AF_INET, (void *)&p.address_, buf, INET_ADDRSTRLEN);
-  stream << buf << "/" << p.len_;
+  stream << buf << "/" << dec << p.len_;
 
   return stream;
 }
@@ -192,7 +193,7 @@ operator<<(ostream& stream, const Prefix<IPv6>& p)
   char buf[INET6_ADDRSTRLEN];
 
   inet_ntop(AF_INET6, (void *)&p.address_, buf, INET6_ADDRSTRLEN);
-  stream << buf << "/" << p.len_;
+  stream << buf << "/" << dec << p.len_;
 
   return stream;
 }
