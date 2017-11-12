@@ -139,7 +139,7 @@ public:
                              prefix);
   }
 
-  // Return a node if it exists, otherwise create one.
+  // Return a node if it exists, otherwise create and add one to the tree.
   NodePtr insert(const P& prefix) {
     NodePtr new_node;
     NodePtr curr = top_;
@@ -187,6 +187,27 @@ public:
     // lock ??
 
     return new_node;
+  }
+
+  // Lookup node with given prefix.
+  NodePtr find(const P& prefix) {
+    NodePtr node = top_;
+
+    while (node
+           && node->prefix().len() <= prefix.len()
+           && node->prefix().match(prefix)) {
+      if (node->prefix().len() == prefix.len())
+        return node;
+
+      node = node->child(prefix.bit_at(node->prefix().len()));
+    }
+
+    return nullptr;
+  }
+
+  // Erase the node from tree.
+  void erase(const P& prefix) {
+
   }
 
 private:
