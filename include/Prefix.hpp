@@ -23,6 +23,7 @@ public:
 
   Prefix(const T& address, ushort len = maxPrefixLen)
     : address_(address), len_(len) { }
+
   Prefix(const string& prefix_str);
 
   // Construct a prefix from prefix p1 and p2.
