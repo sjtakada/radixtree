@@ -36,24 +36,25 @@ public:
       : tree_(tree), parent_(nullptr), prefix_(prefix1, prefix2) {
     }
 
-    // 
+    // Return prefix for the node.
     const P& prefix() {
       return prefix_;
     }
 
-    // 
+    // Return child at.
     const Ptr child(u_char bit) {
       return children_[bit];
     }
 
-    //
-    void setChild(u_char bit, Ptr node) {
-      children_[bit] = node;
-      node->parent_ = enable_shared_from_this<Node>::shared_from_this();
+    // Set given node as a child at left or right.
+    void set_child(Ptr child) {
+      u_char bit = (u_char)child->prefix().bit_at(prefix_.len());
+      children_[bit] = child;
+      child->parent_ = enable_shared_from_this<Node>::shared_from_this();
     }
 
-    //
-    const Ptr nextNode() {
+    // Return next Node.
+    const Ptr next() {
       shared_ptr<Node> curr =
         enable_shared_from_this<Node>::shared_from_this();
 
@@ -105,11 +106,11 @@ public:
     typedef int difference_type;
     iterator(pointer ptr) : ptr_(ptr) { }
     self_type operator++() { self_type i = *this;
-      ptr_ = ptr_->nextNode();
+      ptr_ = ptr_->next();
       return i;
     }
     self_type operator++(int) {
-      ptr_ = ptr_->nextNode();
+      ptr_ = ptr_->next();
       return *this;
     }
     reference operator*() { return *ptr_; }
@@ -133,18 +134,13 @@ public:
     return top_;
   }
 
-  NodePtr setNode(const P& prefix) {
+  NodePtr get_node_for(const P& prefix) {
     return make_shared<Node>(enable_shared_from_this<Tree>::shared_from_this(),
                              prefix);
   }
 
-  void setChildNode(NodePtr parent, NodePtr child) {
-    u_char bit = (u_char)child->prefix().bit_at(parent->prefix().len());
-    parent->setChild(bit, child);
-  }
-
   // Return a node if it exists, otherwise create one.
-  NodePtr getNode(const P& prefix) {
+  NodePtr insert(const P& prefix) {
     NodePtr new_node;
     NodePtr curr = top_;
     NodePtr matched = nullptr;
@@ -162,9 +158,9 @@ public:
     }
 
     if (curr == NULL) {
-      new_node = setNode(prefix);
+      new_node = get_node_for(prefix);
       if (matched) {
-        setChildNode(matched, new_node);
+        matched->set_child(new_node);
       }
       else {
         top_ = new_node;
@@ -173,10 +169,10 @@ public:
     else {
       new_node = make_shared<Node>(enable_shared_from_this<Tree>::shared_from_this(),
                                    curr->prefix(), prefix);
-      setChildNode(new_node, curr);
+      new_node->set_child(curr);
 
       if (matched) {
-        setChildNode(matched, new_node);
+        matched->set_child(new_node);
       }
       else {
         top_ = new_node;
@@ -184,8 +180,8 @@ public:
 
       if (new_node->prefix().len() != prefix.len()) {
         matched = new_node;
-        new_node = setNode(prefix);
-        setChildNode(matched, new_node);
+        new_node = get_node_for(prefix);
+        matched->set_child(new_node);
       }
     }
     // lock ??
