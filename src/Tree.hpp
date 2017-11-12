@@ -18,7 +18,6 @@ public:
     : top_(), count_() { }
   ~Tree() { }
 
-  //  typedef Tree* Ptr;
   using Ptr = shared_ptr<Tree>;
 
   //
@@ -94,6 +93,41 @@ public:
   };
 
   using NodePtr = shared_ptr<Node>;
+
+  typedef int size_type;
+
+  class iterator {
+  public:
+    typedef iterator self_type;
+    typedef Node value_type;
+    typedef Node& reference;
+    typedef NodePtr pointer;
+    typedef std::forward_iterator_tag iterator_category;
+    typedef int difference_type;
+    iterator(pointer ptr) : ptr_(ptr) { }
+    self_type operator++() { self_type i = *this;
+      ptr_ = ptr_->nextNode();
+      return i;
+    }
+    self_type operator++(int) {
+      ptr_ = ptr_->nextNode();
+      return *this;
+    }
+    reference operator*() { return *ptr_; }
+    pointer operator->() { return ptr_; }
+    bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
+    bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_; }
+  private:
+    pointer ptr_;
+  };
+
+  iterator begin() {
+    return iterator(top());
+  }
+
+  iterator end() {
+    return iterator(nullptr);
+  }
 
   // Tree member functions.
   NodePtr top() {
