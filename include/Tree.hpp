@@ -88,6 +88,11 @@ public:
       return enable_shared_from_this<Node>::shared_from_this();
     }
 
+    // Return data pointer.
+    const shared_ptr<D> data() {
+      return data_;
+    }
+
     // Return true if this node is locked.
     const bool is_locked() {
       return children_[0] || children_[1] || data_;
@@ -169,6 +174,57 @@ public:
 
   iterator end() {
     return iterator(nullptr);
+  }
+
+  // Tree::Node data iterator.
+  class data_iterator {
+  public:
+    typedef data_iterator self_type;
+    //    typedef Node value_type;
+    typedef Node& reference;
+    typedef NodePtr pointer;
+    typedef std::forward_iterator_tag iterator_category;
+    typedef int difference_type;
+    data_iterator(pointer ptr) : ptr_(ptr) { }
+    self_type operator++() {
+      self_type i = *this;
+      do {
+        ptr_ = ptr_->next();
+        if (ptr_ && ptr_->data()) {
+          break;
+        }
+      } while (ptr_);
+      return i;
+    }
+    self_type operator++(int) {
+      do {
+        ptr_ = ptr_->next();
+        if (ptr_ && ptr_->data()) {
+          break;
+        }
+      } while (ptr_);
+      return *this;
+    }
+    reference operator*() { return *ptr_; }
+    pointer operator->() { return ptr_; }
+    bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
+    bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_; }
+
+  private:
+    pointer ptr_;
+  };
+
+  data_iterator data_begin() {
+    NodePtr node = top();
+    while (!node->data()) {
+      node = node->next();
+    }
+
+    return data_iterator(node);
+  }
+
+  data_iterator data_end() {
+    return data_iterator(nullptr);
   }
 
   /// Tree member functions.

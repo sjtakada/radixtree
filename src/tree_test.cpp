@@ -31,6 +31,12 @@ main(int argc, char **argv)
     std::cout << it->prefix() << std::endl;
   }
 
+  cout << "data iterator" << endl;
+  for (IPv4RouteTable::data_iterator dit = ipv4_table->data_begin();
+       dit != ipv4_table->data_end(); ++dit) {
+    std::cout << dit->prefix() << std::endl;
+  }
+
   cout << "lookup p3" << endl;
   auto it = ipv4_table->find(p3);
   if (it != ipv4_table->end()) {
