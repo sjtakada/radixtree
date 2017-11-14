@@ -21,9 +21,9 @@ main(int argc, char **argv)
   Prefix<IPv4> p2("10.10.0.0/16");
   Prefix<IPv4> p3("10.10.0.0/24");
 
-  ipv4_table->insert(p1, new Route);
-  ipv4_table->insert(p2, new Route);
-  ipv4_table->insert(p3, new Route);
+  ipv4_table->insert(p1, new Route({0x01010101}));
+  ipv4_table->insert(p2, new Route({0x02020202}));
+  ipv4_table->insert(p3, new Route({0x03030303}));
 
   cout << "insert p1, p2, p3" << endl;
   for (IPv4RouteTable::iterator it = ipv4_table->begin();
@@ -34,7 +34,10 @@ main(int argc, char **argv)
   cout << "data iterator" << endl;
   for (IPv4RouteTable::data_iterator dit = ipv4_table->data_begin();
        dit != ipv4_table->data_end(); ++dit) {
-    std::cout << dit->prefix() << std::endl;
+    auto p = dit.first();
+    auto d = dit.second();
+
+    std::cout << p << " " << hex << d->nexthop.s_addr << std::endl;
   }
 
   cout << "lookup p3" << endl;

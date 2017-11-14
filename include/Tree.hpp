@@ -180,8 +180,8 @@ public:
   class data_iterator {
   public:
     typedef data_iterator self_type;
-    //    typedef Node value_type;
-    typedef Node& reference;
+    typedef Node value_type;
+    typedef std::pair<P, D> reference;
     typedef NodePtr pointer;
     typedef std::forward_iterator_tag iterator_category;
     typedef int difference_type;
@@ -205,7 +205,12 @@ public:
       } while (ptr_);
       return *this;
     }
-    reference operator*() { return *ptr_; }
+    reference operator*() {
+      return std::make_pair<P, D>(ptr_->prefix(), ptr_->data());
+    }
+    const P& first() { return ptr_->prefix(); }
+    const shared_ptr<D> second() { return ptr_->data(); }
+
     pointer operator->() { return ptr_; }
     bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
     bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_; }
