@@ -30,10 +30,16 @@ public:
 
     // Constructors.
     Node(Tree::Ptr tree, const P& prefix)
-      : tree_(tree), parent_(nullptr), prefix_(prefix) {
+      : tree_(tree), parent_(), prefix_(prefix),
+        children_(), data_() {
     }
     Node(Tree::Ptr tree, const P& prefix1, const P& prefix2)
-      : tree_(tree), parent_(nullptr), prefix_(prefix1, prefix2) {
+      : tree_(tree), parent_(), prefix_(prefix1, prefix2),
+        children_(), data_() {
+    }
+
+    // Destructor.
+    ~Node() {
     }
 
     // Return prefix for the node.
@@ -46,11 +52,41 @@ public:
       return children_[bit];
     }
 
+    // Return parent.
+    const Ptr parent() {
+      return parent_;
+    }
+
     // Set given node as a child at left or right.
     void set_child(Ptr child) {
       u_char bit = (u_char)child->prefix().bit_at(prefix_.len());
-      children_[bit] = child;
+      set_child_at(child, bit);
       child->parent_ = enable_shared_from_this<Node>::shared_from_this();
+    }
+
+    // Set give node as a child at.
+    void set_child_at(Ptr child, u_char bit) {
+      children_[bit] = child;
+    }
+
+    // Set parent.
+    void set_parent(Ptr parent) {
+      parent_ = parent;
+    }
+
+    // Set data.
+    void set_data(D* data) {
+      data_ = shared_ptr<D>(data);
+    }
+
+    // Return self pointer.
+    const Ptr self() {
+      return enable_shared_from_this<Node>::shared_from_this();
+    }
+
+    // Return true if this node is locked.
+    const bool is_locked() {
+      return children_[0] || children_[1] || data_;
     }
 
     // Return next Node.
@@ -95,17 +131,18 @@ public:
 
   using NodePtr = shared_ptr<Node>;
 
-  // Node iterator
+  // Tree::Node iterator.
   class iterator {
   public:
     typedef iterator self_type;
-    typedef Node value_type;
+    //    typedef Node value_type;
     typedef Node& reference;
     typedef NodePtr pointer;
     typedef std::forward_iterator_tag iterator_category;
     typedef int difference_type;
     iterator(pointer ptr) : ptr_(ptr) { }
-    self_type operator++() { self_type i = *this;
+    self_type operator++() {
+      self_type i = *this;
       ptr_ = ptr_->next();
       return i;
     }
@@ -117,6 +154,7 @@ public:
     pointer operator->() { return ptr_; }
     bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
     bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_; }
+
   private:
     pointer ptr_;
   };
@@ -129,7 +167,9 @@ public:
     return iterator(nullptr);
   }
 
-  // Tree member functions.
+  /// Tree member functions.
+
+  //
   NodePtr top() {
     return top_;
   }
@@ -139,8 +179,8 @@ public:
                              prefix);
   }
 
-  // Return a node if it exists, otherwise create and add one to the tree.
-  NodePtr insert(const P& prefix) {
+  // XXX/TODO
+  iterator insert(const P& prefix, D* data) {
     NodePtr new_node;
     NodePtr curr = top_;
     NodePtr matched = nullptr;
@@ -150,7 +190,8 @@ public:
            && curr->prefix().match(prefix)) {
       // Found the exact node.
       if (curr->prefix().len() == prefix.len()) {
-        return curr; // TBD: need lock?
+        curr->set_data(data);
+        return iterator(curr); // TBD: need lock?
       }
 
       matched = curr;
@@ -167,8 +208,9 @@ public:
       }
     }
     else {
-      new_node = make_shared<Node>(enable_shared_from_this<Tree>::shared_from_this(),
-                                   curr->prefix(), prefix);
+      new_node =
+        make_shared<Node>(enable_shared_from_this<Tree>::shared_from_this(),
+                          curr->prefix(), prefix);
       new_node->set_child(curr);
 
       if (matched) {
@@ -186,28 +228,75 @@ public:
     }
     // lock ??
 
-    return new_node;
+    new_node->set_data(data);
+    return iterator(new_node);
   }
 
   // Lookup node with given prefix.
-  NodePtr find(const P& prefix) {
+  iterator find(const P& prefix) {
     NodePtr node = top_;
 
     while (node
            && node->prefix().len() <= prefix.len()
            && node->prefix().match(prefix)) {
       if (node->prefix().len() == prefix.len())
-        return node;
+        return iterator(node);
 
       node = node->child(prefix.bit_at(node->prefix().len()));
     }
 
-    return nullptr;
+    return iterator(nullptr);
   }
 
-  // Erase the node from tree.
-  void erase(const P& prefix) {
+  // Erase the node from tree, and return iterator for next node.
+  iterator erase(iterator it) {
+    NodePtr child = nullptr;
+    NodePtr parent;
+    NodePtr next = it->next();
 
+    if (it->child(0) && it->child(1)) {
+      return iterator(nullptr);
+    }
+
+    if (it->child(0)) {
+      child = it->child(0);
+    }
+    else {
+      child = it->child(1);
+    }
+
+    parent = it->parent();
+
+    if (child) {
+      child->set_parent(parent);
+    }
+
+    if (parent) {
+      if (parent->child(0) == it->self()) {
+        parent->set_child_at(child, 0);
+      }
+      else {
+        parent->set_child_at(child, 1);
+      }
+    }
+    else {
+      top_ = child;
+    }
+
+    if (parent && !parent->is_locked()) {
+      erase(parent);
+    }
+
+    return iterator(next);
+  }
+
+  iterator erase_at(const P& prefix) {
+    auto it = find(prefix);
+    if (it != end()) {
+      return erase(it);
+    }
+
+    return iterator(nullptr);
   }
 
 private:
