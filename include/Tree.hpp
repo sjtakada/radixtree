@@ -14,9 +14,13 @@ template<typename P, typename D>
 class Tree : public std::enable_shared_from_this<Tree<P, D>>
 {
 public:
+  // Constructor.
   Tree()
     : top_(), count_() { }
-  ~Tree() { }
+
+  // Destructor.
+  ~Tree() {
+  }
 
   using Ptr = shared_ptr<Tree>;
 
@@ -181,6 +185,14 @@ public:
 
   // XXX/TODO
   iterator insert(const P& prefix, D* data) {
+    iterator it = get_node(prefix);
+
+    it->set_data(data);
+
+    return it;
+  }
+
+  iterator get_node(const P& prefix) {
     NodePtr new_node;
     NodePtr curr = top_;
     NodePtr matched = nullptr;
@@ -190,8 +202,7 @@ public:
            && curr->prefix().match(prefix)) {
       // Found the exact node.
       if (curr->prefix().len() == prefix.len()) {
-        curr->set_data(data);
-        return iterator(curr); // TBD: need lock?
+        return iterator(curr);
       }
 
       matched = curr;
@@ -226,9 +237,7 @@ public:
         matched->set_child(new_node);
       }
     }
-    // lock ??
 
-    new_node->set_data(data);
     return iterator(new_node);
   }
 
