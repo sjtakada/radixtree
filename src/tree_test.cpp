@@ -40,10 +40,22 @@ main(int argc, char **argv)
     std::cout << p << " " << hex << d->nexthop.s_addr << std::endl;
   }
 
+  {
+    std::cout << "longest match 1" << std::endl;
+    auto it = ipv4_table->match(Prefix<IPv4>("10.10.10.0/28"));
+    if (it != ipv4_table->end()) {
+      std::cout << it->prefix() << std::endl;
+    }
+    it = ipv4_table->match(Prefix<IPv4>("10.10.10.0/18"));
+    if (it != ipv4_table->end()) {
+      std::cout << it->prefix() << std::endl;
+    }
+  }
+
   cout << "lookup p3" << endl;
   auto it = ipv4_table->find(p3);
   if (it != ipv4_table->end()) {
-    std::cout << it->prefix() << endl;
+    std::cout << it->prefix() << std::endl;
   }
 
   cout << "erase p3" << endl;

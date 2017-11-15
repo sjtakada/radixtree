@@ -8,7 +8,7 @@ using namespace std;
 namespace librt {
 
 //
-// Radix Tree template
+// Radix Tree template.
 //
 template<typename P, typename D>
 class Tree : public std::enable_shared_from_this<Tree<P, D>>
@@ -232,16 +232,9 @@ public:
     return data_iterator(nullptr);
   }
 
-  /// Tree member functions.
-
-  //
+  // 
   NodePtr top() {
     return top_;
-  }
-
-  NodePtr get_node_for(const P& prefix) {
-    return make_shared<Node>(enable_shared_from_this<Tree>::shared_from_this(),
-                             prefix);
   }
 
   // XXX/TODO
@@ -253,6 +246,7 @@ public:
     return it;
   }
 
+  // Add a node for given prefix, and place it in the tree.
   iterator get_node(const P& prefix) {
     NodePtr new_node;
     NodePtr curr = top_;
@@ -302,18 +296,49 @@ public:
     return iterator(new_node);
   }
 
-  // Lookup node with given prefix.
+  // Perform exact match lookup.
   iterator find(const P& prefix) {
     NodePtr node = top_;
 
     while (node
            && node->prefix().len() <= prefix.len()
            && node->prefix().match(prefix)) {
-      if (node->prefix().len() == prefix.len())
-        return iterator(node);
+      if (node->prefix().len() == prefix.len()) {
+        if (node->data()) {
+          return iterator(node);
+        }
+        else {
+          break;
+        }
+      }
 
       node = node->child(prefix.bit_at(node->prefix().len()));
     }
+
+    return iterator(nullptr);
+  }
+
+  // Perform longest match lookup.
+  iterator match(const P& prefix) {
+    NodePtr node = top_;
+    NodePtr matched = nullptr;
+
+    while (node
+           && node->prefix().len() <= prefix.len()
+           && node->prefix().match(prefix)) {
+      if (node->data()) {
+        matched = node;
+      }
+
+      if (node->prefix().len() == prefix.len()) {
+        break;
+      }
+
+      node = node->child(prefix.bit_at(node->prefix().len()));
+    }
+
+    if (matched)
+      return iterator(matched);
 
     return iterator(nullptr);
   }
@@ -375,6 +400,12 @@ private:
 
   // number of nodes in this tree.
   uint32_t count_;
+
+  // Create a node for given prefix.
+  NodePtr get_node_for(const P& prefix) {
+    return make_shared<Node>(enable_shared_from_this<Tree>::shared_from_this(),
+                             prefix);
+  }
 };
 
 } // namespace librt
