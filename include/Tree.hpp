@@ -208,8 +208,8 @@ public:
     reference operator*() {
       return std::make_pair<P, D>(ptr_->prefix(), ptr_->data());
     }
-    const P& first() { return ptr_->prefix(); }
-    const shared_ptr<D> second() { return ptr_->data(); }
+    const P& prefix() { return ptr_->prefix(); }
+    const shared_ptr<D> data() { return ptr_->data(); }
 
     pointer operator->() { return ptr_; }
     bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
