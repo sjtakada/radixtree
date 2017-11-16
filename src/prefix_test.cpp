@@ -53,6 +53,16 @@ main(int argc, char **argv)
     }
 
     cout << endl;
+
+    // mask test.
+    cout << "mask test" << endl;
+    cout << "=========" << endl;
+    IPv4 b1 = { 0xFFFFFFFF };
+    for (size_t i = 0; i <= 32; ++i) {
+      cout << Prefix<IPv4>(b1, i) << endl;
+    }
+
+    cout << endl;
   }
 
   /// IPv6 prefixes.

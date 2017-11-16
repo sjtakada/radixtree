@@ -23,7 +23,9 @@ public:
   ~Prefix() {}
 
   Prefix(const T& address, ushort len = maxPrefixLen)
-    : address_(address), len_(len) { }
+    : address_(address), len_(len) {
+    apply_mask();
+  }
 
   Prefix(const string& prefix_str);
 
@@ -115,11 +117,28 @@ private:
   // Prefix Length.
   ushort len_;
 
-  // Maskbits
+  // Maskbits.
   const u_char maskbit(ushort bits) const {
     static const u_char masks[] = {0x00, 0x80, 0xc0, 0xe0,
                                    0xf0, 0xf8, 0xfc, 0xfe, 0xff};
     return masks[bits];
+  }
+
+  // Apply mask.
+  void apply_mask() {
+    u_char *pp = (u_char *)&address_;
+
+    ushort offset = len_ / 8;
+    ushort shift = len_ % 8;
+
+    for (size_t i = offset; i < sizeof(T); ++i) {
+      if (i == offset) {
+        pp[i] = pp[i] & (0xFF << 8 - shift);
+      }
+      else {
+        pp[i] = 0;
+      }
+    }
   }
 };
 
@@ -148,6 +167,8 @@ Prefix<IPv4>::Prefix(const string& prefix_str) {
   if (!inet_pton(AF_INET, addr_str.c_str(), (void *)&address_)) {
     throw runtime_error(string("Invalid IPv4 address ") + addr_str);
   }
+
+  apply_mask();
 }
 
 template<>
