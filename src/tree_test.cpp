@@ -35,8 +35,8 @@ main(int argc, char **argv)
   }
 
   cout << ">> data iterator" << endl;
-  for (IPv4RouteTable::data_iterator dit = ipv4_table->data_begin();
-       dit != ipv4_table->data_end(); ++dit) {
+  for (IPv4RouteTable::iterator dit = ipv4_table->begin();
+       dit != ipv4_table->end(); ++dit) {
     auto p = dit.prefix();
     auto d = dit.data();
 

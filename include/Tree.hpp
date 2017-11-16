@@ -141,51 +141,51 @@ public:
   using NodePtr = shared_ptr<Node>;
 
   // Tree::Node iterator.
+  //  class node_iterator {
+  //  public:
+  //    typedef node_iterator self_type;
+    //    typedef Node value_type;
+  //    typedef Node& reference;
+  //    typedef NodePtr pointer;
+  //    typedef std::forward_iterator_tag iterator_category;
+  //    typedef int difference_type;
+  //    node_iterator(pointer ptr) : ptr_(ptr) { }
+  //    self_type operator++() {
+  //      self_type i = *this;
+  //      ptr_ = ptr_->next();
+  //      return i;
+  //    }
+  //    self_type operator++(int) {
+  //      ptr_ = ptr_->next();
+  //      return *this;
+  //    }
+  //    reference operator*() { return *ptr_; }
+  //    pointer operator->() { return ptr_; }
+  //    bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
+  //    bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_; }
+  //
+  //  private:
+  //    pointer ptr_;
+  //  };
+  //
+  //  node_iterator node_begin() {
+  //    return node_iterator(top());
+  //  }
+  //
+  //  node_iterator node_end() {
+  //    return node_iterator(nullptr);
+  //  }
+
+  // Tree::Node iterator.
   class iterator {
   public:
     typedef iterator self_type;
-    //    typedef Node value_type;
-    typedef Node& reference;
-    typedef NodePtr pointer;
-    typedef std::forward_iterator_tag iterator_category;
-    typedef int difference_type;
-    iterator(pointer ptr) : ptr_(ptr) { }
-    self_type operator++() {
-      self_type i = *this;
-      ptr_ = ptr_->next();
-      return i;
-    }
-    self_type operator++(int) {
-      ptr_ = ptr_->next();
-      return *this;
-    }
-    reference operator*() { return *ptr_; }
-    pointer operator->() { return ptr_; }
-    bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
-    bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_; }
-
-  private:
-    pointer ptr_;
-  };
-
-  iterator begin() {
-    return iterator(top());
-  }
-
-  iterator end() {
-    return iterator(nullptr);
-  }
-
-  // Tree::Node data iterator.
-  class data_iterator {
-  public:
-    typedef data_iterator self_type;
     typedef Node value_type;
     typedef std::pair<P, D> reference;
     typedef NodePtr pointer;
     typedef std::forward_iterator_tag iterator_category;
     typedef int difference_type;
-    data_iterator(pointer ptr) : ptr_(ptr) { }
+    iterator(pointer ptr) : ptr_(ptr) { }
     self_type operator++() {
       self_type i = *this;
       do {
@@ -219,20 +219,22 @@ public:
     pointer ptr_;
   };
 
-  data_iterator data_begin() {
+  // Iterator begin.
+  iterator begin() {
     NodePtr node = top();
     while (!node->data()) {
       node = node->next();
     }
 
-    return data_iterator(node);
+    return iterator(node);
   }
 
-  data_iterator data_end() {
-    return data_iterator(nullptr);
+  // Iterator end.
+  iterator end() {
+    return iterator(nullptr);
   }
 
-  // 
+  // Top node of the tree.
   NodePtr top() {
     return top_;
   }
