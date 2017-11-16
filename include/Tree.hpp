@@ -208,6 +208,12 @@ public:
     reference operator*() {
       return std::make_pair<P, D>(ptr_->prefix(), ptr_->data());
     }
+
+    self_type next() {
+      ptr_ = ptr_->next();
+      return *this;
+    }
+
     const P& prefix() { return ptr_->prefix(); }
     const shared_ptr<D> data() { return ptr_->data(); }
 

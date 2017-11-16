@@ -30,15 +30,15 @@ main(int argc, char **argv)
 
   cout << ">> node iterator" << endl;
   for (IPv4RouteTable::iterator it = ipv4_table->begin();
-       it != ipv4_table->end(); ++it) {
+       it != ipv4_table->end(); it = it->next()) {
     cout << it->prefix() << endl;
   }
 
   cout << ">> data iterator" << endl;
-  for (IPv4RouteTable::iterator dit = ipv4_table->begin();
-       dit != ipv4_table->end(); ++dit) {
-    auto p = dit.prefix();
-    auto d = dit.data();
+  for (IPv4RouteTable::iterator it = ipv4_table->begin();
+       it != ipv4_table->end(); ++it) {
+    auto p = it.prefix();
+    auto d = it.data();
 
     cout << p << " " << hex << d->nexthop.s_addr << endl;
   }
