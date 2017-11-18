@@ -21,12 +21,16 @@ main(int argc, char **argv)
   Prefix<IPv4> p2("10.10.0.0/16");
   Prefix<IPv4> p3("10.10.0.0/24");
 
+  Route r1({0x01010101});
+  Route r2({0x02020202});
+  Route r3({0x03030303});
+
   cout << ">> insert p1 " << p1 << endl;
-  ipv4_table->insert(p1, new Route({0x01010101}));
+  ipv4_table->insert(p1, r1);
   cout << ">> insert p2 " << p2 << endl;
-  ipv4_table->insert(p2, new Route({0x02020202}));
+  ipv4_table->insert(p2, r2);
   cout << ">> insert p3 " << p3 << endl;
-  ipv4_table->insert(p3, new Route({0x03030303}));
+  ipv4_table->insert(p3, r3);
 
   cout << ">> node iterator" << endl;
   for (IPv4RouteTable::iterator it = ipv4_table->begin();
@@ -40,7 +44,7 @@ main(int argc, char **argv)
     auto p = it.prefix();
     auto d = it.data();
 
-    cout << p << " " << hex << d->nexthop.s_addr << endl;
+    cout << p << " " << hex << d.nexthop.s_addr << endl;
   }
 
   {

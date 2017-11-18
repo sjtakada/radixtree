@@ -35,11 +35,11 @@ public:
     // Constructors.
     Node(Tree::Ptr tree, const P& prefix)
       : tree_(tree), parent_(), prefix_(prefix),
-        children_(), data_() {
+        children_(), data_(), has_data_() {
     }
     Node(Tree::Ptr tree, const P& prefix1, const P& prefix2)
       : tree_(tree), parent_(), prefix_(prefix1, prefix2),
-        children_(), data_() {
+        children_(), data_(), has_data_() {
     }
 
     // Destructor.
@@ -79,8 +79,9 @@ public:
     }
 
     // Set data.
-    void set_data(D* data) {
-      data_ = shared_ptr<D>(data);
+    void set_data(D& data) {
+      data_ = data;
+      has_data_ = true;
     }
 
     // Return self pointer.
@@ -88,14 +89,19 @@ public:
       return enable_shared_from_this<Node>::shared_from_this();
     }
 
-    // Return data pointer.
-    const shared_ptr<D> data() {
+    // Return data reference.
+    const D& data() {
       return data_;
+    }
+
+    // Return true if node has data.
+    bool has_data() {
+      return has_data_;
     }
 
     // Return true if this node is locked.
     const bool is_locked() {
-      return children_[0] || children_[1] || data_;
+      return children_[0] || children_[1] || has_data_;
     }
 
     // Return next Node.
@@ -135,7 +141,10 @@ public:
     Ptr children_[2];
 
     // Data.
-    shared_ptr<D> data_;
+    D data_;
+
+    // True if node has data.
+    bool has_data_;
   };
 
   using NodePtr = shared_ptr<Node>;
@@ -154,7 +163,7 @@ public:
       self_type i = *this;
       do {
         ptr_ = ptr_->next();
-        if (ptr_ && ptr_->data()) {
+        if (ptr_ && ptr_->has_data()) {
           break;
         }
       } while (ptr_);
@@ -163,7 +172,7 @@ public:
     self_type operator++(int) {
       do {
         ptr_ = ptr_->next();
-        if (ptr_ && ptr_->data()) {
+        if (ptr_ && ptr_->has_data()) {
           break;
         }
       } while (ptr_);
@@ -179,7 +188,7 @@ public:
     }
 
     const P& prefix() { return ptr_->prefix(); }
-    const shared_ptr<D> data() { return ptr_->data(); }
+    const D& data() { return ptr_->data(); }
 
     pointer operator->() { return ptr_; }
     bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
@@ -191,8 +200,8 @@ public:
 
   // Iterator begin.
   iterator begin() {
-    NodePtr node = top();
-    while (!node->data()) {
+    NodePtr node = top_;
+    while (!node->has_data()) {
       node = node->next();
     }
 
@@ -204,13 +213,13 @@ public:
     return iterator(nullptr);
   }
 
-  // Top node of the tree.
-  NodePtr top() {
-    return top_;
+  // Iterator for top node.
+  iterator top() {
+    return iterator(top_);
   }
 
   // XXX/TODO
-  iterator insert(const P& prefix, D* data) {
+  iterator insert(const P& prefix, D data) {
     iterator it = get_node(prefix);
 
     it->set_data(data);
@@ -276,7 +285,7 @@ public:
            && node->prefix().len() <= prefix.len()
            && node->prefix().match(prefix)) {
       if (node->prefix().len() == prefix.len()) {
-        if (node->data()) {
+        if (node->has_data()) {
           return iterator(node);
         }
         else {
@@ -298,7 +307,7 @@ public:
     while (node
            && node->prefix().len() <= prefix.len()
            && node->prefix().match(prefix)) {
-      if (node->data()) {
+      if (node->has_data()) {
         matched = node;
       }
 
