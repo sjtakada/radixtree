@@ -84,6 +84,12 @@ public:
       has_data_ = true;
     }
 
+    // Unset data.
+    void unset_data() {
+      //      data_ = 0;
+      has_data_ = false;
+    }
+
     // Return self pointer.
     const Ptr self() {
       return enable_shared_from_this<Node>::shared_from_this();
@@ -178,9 +184,9 @@ public:
       } while (ptr_);
       return *this;
     }
-    reference operator*() {
-      return std::make_pair<P, D>(ptr_->prefix(), ptr_->data());
-    }
+    //    reference operator*() {
+    //      return std::make_pair<P, D>(ptr_->prefix(), ptr_->data());
+    //    }
 
     self_type next() {
       ptr_ = ptr_->next();
@@ -218,7 +224,7 @@ public:
     return iterator(top_);
   }
 
-  // XXX/TODO
+  // Insert data to the node with given prefix.
   iterator insert(const P& prefix, D data) {
     iterator it = get_node(prefix);
 
@@ -226,6 +232,14 @@ public:
 
     return it;
   }
+
+  // Delete date from the node with given prefix.
+  //  void delete(const P& prefix, D data) {
+  //    auto it = find(prefix);
+  //    if (it != end()) {
+  //      
+  //    }
+  //  }
 
   // Add a node for given prefix, and place it in the tree.
   iterator get_node(const P& prefix) {
