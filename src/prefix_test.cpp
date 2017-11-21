@@ -77,25 +77,27 @@ TEST(PrefixTest, IPv4Prefix) {
 }
 
 TEST(PrefixTest, IPv6Prefix) {
+  stringstream ss;
+
   // constructor with struct in6_addr (default prefix len).
   IPv6 a1 = { 0x26, 0x07, 0xf8, 0xb0, 0x40, 0x00, 0x08, 0x15,
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x04 };
+              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x04 };
   Prefix<IPv6> p1(a1);
-  stringstream s1;
-  s1 << p1;
-  EXPECT_EQ(s1.str(), string("2607:f8b0:4000:815::2004/128"));
+  ss.str("");
+  ss << p1;
+  EXPECT_EQ(ss.str(), string("2607:f8b0:4000:815::2004/128"));
 
   // constructor with struct in6_addr and prefix len.
   Prefix<IPv6> p2(a1, 64);
-  stringstream s2;
-  s2 << p2;
-  EXPECT_EQ(s2.str(), string("2607:f8b0:4000:815::/64"));
+  ss.str("");
+  ss << p2;
+  EXPECT_EQ(ss.str(), string("2607:f8b0:4000:815::/64"));
 
   // constructor with string as host address
   Prefix<IPv6> p3("2001:face:b00c::1");
-  stringstream s3;
-  s3 << p3;
-  EXPECT_EQ(s3.str(), string("2001:face:b00c::1/128"));
+  ss.str("");
+  ss << p3;
+  EXPECT_EQ(ss.str(), string("2001:face:b00c::1/128"));
 
   // constructor with string as CIDR format.
   Prefix<IPv6> p4("2001:dead:beef::/48");

@@ -1,5 +1,6 @@
 #include <netinet/in.h>
 #include <iostream>
+#include <gtest/gtest.h>
 #include "Prefix.hpp"
 #include "Tree.hpp"
 
@@ -10,10 +11,9 @@ struct Route {
   struct in_addr nexthop;
 };
 
-int
-main(int argc, char **argv)
-{
-  typedef Tree<Prefix<IPv4>, Route> IPv4RouteTable;
+typedef Tree<Prefix<IPv4>, Route> IPv4RouteTable;
+
+TEST(TreeTest, IPv4Route) {
 
   auto ipv4_table = make_shared<IPv4RouteTable>();
 
@@ -25,64 +25,110 @@ main(int argc, char **argv)
   Route r2({0x02020202});
   Route r3({0x03030303});
 
-  cout << ">> insert p1 " << p1 << endl;
   ipv4_table->insert(p1, r1);
-  cout << ">> insert p2 " << p2 << endl;
   ipv4_table->insert(p2, r2);
-  cout << ">> insert p3 " << p3 << endl;
   ipv4_table->insert(p3, r3);
 
-  cout << ">> node iterator" << endl;
-  for (IPv4RouteTable::iterator it = ipv4_table->begin();
-       it != ipv4_table->end(); it = it->next()) {
-    cout << it->prefix() << endl;
-  }
+  stringstream ss;
 
-  cout << ">> data iterator" << endl;
-  for (IPv4RouteTable::iterator it = ipv4_table->begin();
-       it != ipv4_table->end(); ++it) {
-    auto p = it.prefix();
-    auto d = it.data();
+  // Node iterator tests.
+  IPv4RouteTable::iterator it = ipv4_table->begin();
+  ss.str("");
+  ss << it->prefix();
+  EXPECT_EQ(ss.str(), string("10.10.0.0/16"));
 
-    cout << p << " " << hex << d.nexthop.s_addr << endl;
-  }
+  it = it->next();
+  ss.str("");
+  ss << it->prefix();
+  EXPECT_EQ(ss.str(), string("10.10.0.0/20"));
 
-  {
-    cout << ">> longest match to 10.10.10.0/28" << endl;
-    auto it = ipv4_table->match(Prefix<IPv4>("10.10.10.0/28"));
-    if (it != ipv4_table->end()) {
-      cout << it->prefix() << endl;
-    }
-    cout << ">> longest match to 10.10.10.0/18" << endl;
-    it = ipv4_table->match(Prefix<IPv4>("10.10.10.0/18"));
-    if (it != ipv4_table->end()) {
-      cout << it->prefix() << endl;
-    }
-  }
+  it = it->next();
+  ss.str("");
+  ss << it->prefix();
+  EXPECT_EQ(ss.str(), string("10.10.0.0/24"));
 
-  cout << ">> lookup p3" << endl;
-  auto it = ipv4_table->find(p3);
-  if (it != ipv4_table->end()) {
-    cout << it->prefix() << endl;
-  }
+  it = it->next();
+  ss.str("");
+  ss << it->prefix();
+  EXPECT_EQ(ss.str(), string("10.10.10.0/24"));
 
-  {
-    cout << ">> erase p3" << endl;
-    ipv4_table->erase(it);
-    for (IPv4RouteTable::iterator it = ipv4_table->begin();
-         it != ipv4_table->end(); ++it) {
-      cout << it->prefix() << endl;
-    }
-  }
+  it = it->next();
+  //  EXPECT_EQ(it, nullptr); TODO
 
-  {
-    cout << ">> erase p2" << endl;
-    ipv4_table->erase_at(p1);
-    for (IPv4RouteTable::iterator it = ipv4_table->begin();
-         it != ipv4_table->end(); ++it) {
-      cout << it->prefix() << endl;
-    }
-  }
+  // Data iterator tests.
+  it = ipv4_table->begin();
+  ss.str("");
+  ss << it->prefix();
+  EXPECT_EQ(ss.str(), string("10.10.0.0/16"));
+  EXPECT_EQ(it->data().nexthop.s_addr, 0x02020202);
 
-  return 0;
+  ++it;
+  ss.str("");
+  ss << it->prefix();
+  EXPECT_EQ(ss.str(), string("10.10.0.0/24"));
+  EXPECT_EQ(it->data().nexthop.s_addr, 0x03030303);
+
+  ++it;
+  ss.str("");
+  ss << it->prefix();
+  EXPECT_EQ(ss.str(), string("10.10.10.0/24"));
+  EXPECT_EQ(it->data().nexthop.s_addr, 0x01010101);
+
+  ++it;
+  //  EXPECT_EQ(it, nullptr); TODO
+
+  // Longext match test.
+  it = ipv4_table->match(Prefix<IPv4>("10.10.10.0/28"));
+  ss.str("");
+  ss << it->prefix();
+  EXPECT_EQ(ss.str(), string("10.10.10.0/24"));
+
+  it = ipv4_table->match(Prefix<IPv4>("10.10.10.0/18"));
+  ss.str("");
+  ss << it->prefix();
+  EXPECT_EQ(ss.str(), string("10.10.0.0/16"));
+
+  // Exect match lookup test.
+  it = ipv4_table->find(p3);
+  ss.str("");
+  ss << it->prefix();
+  EXPECT_EQ(ss.str(), string("10.10.0.0/24"));
+
+  // Erase test.
+  ipv4_table->erase(it); // Erase p3
+  it = ipv4_table->begin();
+  ss.str("");
+  ss << it->prefix();
+  EXPECT_EQ(ss.str(), string("10.10.0.0/16"));
+
+  ++it;
+  ss.str("");
+  ss << it->prefix();
+  EXPECT_EQ(ss.str(), string("10.10.10.0/24"));
+
+  ++it;
+  //  EXPECT_EQ(it, nullptr); TODO
+  
+  
+  ipv4_table->erase_at(p1); // Erase p1.
+  it = ipv4_table->begin();
+  ss.str("");
+  ss << it->prefix();
+  EXPECT_EQ(ss.str(), string("10.10.0.0/16"));
+
+  ++it;
+  //  EXPECT_EQ(it, nullptr); TODO
 }
+
+int
+main(int argc, char **argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+
+  return RUN_ALL_TESTS();
+}
+
+
+
+
+
