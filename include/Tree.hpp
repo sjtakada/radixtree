@@ -11,12 +11,13 @@ namespace librt {
 // Radix Tree template.
 //
 template<typename P, typename D>
-class Tree : public std::enable_shared_from_this<Tree<P, D>>
+class Tree
 {
 public:
   // Constructor.
   Tree()
-    : top_(), count_() { }
+    : top_(), count_() {
+  }
 
   // Destructor.
   ~Tree() {
@@ -33,12 +34,12 @@ public:
     using Ptr = shared_ptr<Node>;
 
     // Constructors.
-    Node(Tree::Ptr tree, const P& prefix)
-      : tree_(tree), parent_(), prefix_(prefix),
+    Node(const P& prefix)
+      : parent_(), prefix_(prefix),
         children_(), data_(), has_data_() {
     }
-    Node(Tree::Ptr tree, const P& prefix1, const P& prefix2)
-      : tree_(tree), parent_(), prefix_(prefix1, prefix2),
+    Node(const P& prefix1, const P& prefix2)
+      : parent_(), prefix_(prefix1, prefix2),
         children_(), data_(), has_data_() {
     }
 
@@ -86,7 +87,6 @@ public:
 
     // Unset data.
     void unset_data() {
-      //      data_ = 0;
       has_data_ = false;
     }
 
@@ -134,9 +134,6 @@ public:
     }
 
   private:
-    // Pointer to the tree.
-    Tree::Ptr tree_;
-
     // Pointer to parent node.
     Ptr parent_;
 
@@ -269,9 +266,7 @@ public:
       }
     }
     else {
-      new_node =
-        make_shared<Node>(enable_shared_from_this<Tree>::shared_from_this(),
-                          curr->prefix(), prefix);
+      new_node = make_shared<Node>(curr->prefix(), prefix);
       new_node->set_child(curr);
 
       if (matched) {
@@ -398,8 +393,7 @@ private:
 
   // Create a node for given prefix.
   NodePtr get_node_for(const P& prefix) {
-    return make_shared<Node>(enable_shared_from_this<Tree>::shared_from_this(),
-                             prefix);
+    return make_shared<Node>(prefix);
   }
 };
 
