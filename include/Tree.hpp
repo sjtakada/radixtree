@@ -115,18 +115,17 @@ public:
       shared_ptr<Node> curr =
         enable_shared_from_this<Node>::shared_from_this();
 
-      if (curr->children_[0]) {
+      if (curr->children_[0])
         return curr->children_[0];
-      }
-      if (curr->children_[1]) {
+
+      if (curr->children_[1])
         return curr->children_[1];
-      }
 
       while (curr->parent_) {
         if (curr->parent_->children_[0] == curr
-            && curr->parent_->children_[1]) {
+            && curr->parent_->children_[1])
           return curr->parent_->children_[1];
-        }
+
         curr = curr->parent_;
       }
 
@@ -161,23 +160,25 @@ public:
     typedef NodePtr pointer;
     typedef std::forward_iterator_tag iterator_category;
     typedef int difference_type;
-    iterator(pointer ptr) : ptr_(ptr) { }
+    iterator(pointer ptr)
+      : ptr_(ptr) {
+    }
     self_type operator++() {
       self_type i = *this;
       do {
         ptr_ = ptr_->next();
-        if (ptr_ && ptr_->has_data()) {
+        if (ptr_ && ptr_->has_data())
           break;
-        }
+
       } while (ptr_);
       return i;
     }
     self_type operator++(int) {
       do {
         ptr_ = ptr_->next();
-        if (ptr_ && ptr_->has_data()) {
+        if (ptr_ && ptr_->has_data())
           break;
-        }
+
       } while (ptr_);
       return *this;
     }
@@ -190,12 +191,25 @@ public:
       return *this;
     }
 
-    const P& prefix() { return ptr_->prefix(); }
-    const D& data() { return ptr_->data(); }
+    const P& prefix() {
+      return ptr_->prefix();
+    }
 
-    pointer operator->() { return ptr_; }
-    bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
-    bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_; }
+    const D& data() {
+      return ptr_->data();
+    }
+
+    pointer operator->() {
+      return ptr_;
+    }
+
+    bool operator==(const self_type& rhs) {
+      return ptr_ == rhs.ptr_;
+    }
+
+    bool operator!=(const self_type& rhs) {
+      return ptr_ != rhs.ptr_;
+    }
 
   private:
     pointer ptr_;
@@ -204,9 +218,8 @@ public:
   // Iterator begin.
   iterator begin() {
     NodePtr node = top_;
-    while (!node->has_data()) {
+    while (!node->has_data())
       node = node->next();
-    }
 
     return iterator(node);
   }
@@ -248,9 +261,8 @@ public:
            && curr->prefix().len() <= prefix.len()
            && curr->prefix().match(prefix)) {
       // Found the exact node.
-      if (curr->prefix().len() == prefix.len()) {
+      if (curr->prefix().len() == prefix.len())
         return iterator(curr);
-      }
 
       matched = curr;
       curr = curr->child(prefix.bit_at(curr->prefix().len()));
@@ -258,23 +270,19 @@ public:
 
     if (curr == NULL) {
       new_node = get_node_for(prefix);
-      if (matched) {
+      if (matched)
         matched->set_child(new_node);
-      }
-      else {
+      else
         top_ = new_node;
-      }
     }
     else {
       new_node = make_shared<Node>(curr->prefix(), prefix);
       new_node->set_child(curr);
 
-      if (matched) {
+      if (matched)
         matched->set_child(new_node);
-      }
-      else {
+      else
         top_ = new_node;
-      }
 
       if (new_node->prefix().len() != prefix.len()) {
         matched = new_node;
@@ -294,12 +302,10 @@ public:
            && node->prefix().len() <= prefix.len()
            && node->prefix().match(prefix)) {
       if (node->prefix().len() == prefix.len()) {
-        if (node->has_data()) {
+        if (node->has_data())
           return iterator(node);
-        }
-        else {
+        else
           break;
-        }
       }
 
       node = node->child(prefix.bit_at(node->prefix().len()));
@@ -316,13 +322,11 @@ public:
     while (node
            && node->prefix().len() <= prefix.len()
            && node->prefix().match(prefix)) {
-      if (node->has_data()) {
+      if (node->has_data())
         matched = node;
-      }
 
-      if (node->prefix().len() == prefix.len()) {
+      if (node->prefix().len() == prefix.len())
         break;
-      }
 
       node = node->child(prefix.bit_at(node->prefix().len()));
     }
@@ -339,47 +343,39 @@ public:
     NodePtr parent;
     NodePtr next = it->next();
 
-    if (it->child(0) && it->child(1)) {
+    if (it->child(0) && it->child(1))
       return iterator(nullptr);
-    }
 
-    if (it->child(0)) {
+    if (it->child(0))
       child = it->child(0);
-    }
-    else {
+    else
       child = it->child(1);
-    }
 
     parent = it->parent();
 
-    if (child) {
+    if (child)
       child->set_parent(parent);
-    }
 
     if (parent) {
-      if (parent->child(0) == it->self()) {
+      if (parent->child(0) == it->self())
         parent->set_child_at(child, 0);
-      }
-      else {
+      else
         parent->set_child_at(child, 1);
-      }
     }
     else {
       top_ = child;
     }
 
-    if (parent && !parent->is_locked()) {
+    if (parent && !parent->is_locked())
       erase(parent);
-    }
 
     return iterator(next);
   }
 
   iterator erase_at(const P& prefix) {
     auto it = find(prefix);
-    if (it != end()) {
+    if (it != end())
       return erase(it);
-    }
 
     return iterator(nullptr);
   }
